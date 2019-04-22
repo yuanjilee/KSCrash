@@ -28,6 +28,7 @@
 #include "KSCrashReport.h"
 
 #include "KSCrashReportFields.h"
+#include "WTCrashReportCustomFields.h"
 #include "KSCrashReportWriter.h"
 #include "KSDynamicLinker.h"
 #include "KSFileUtils.h"
@@ -1539,6 +1540,70 @@ static void writeReportInfo(const KSCrashReportWriter* const writer,
     writer->endContainer(writer);
 }
 
+static void writeWTReportInfo(const KSCrashReportWriter* const writer,
+                              const KSCrash_MonitorContext* const monitorContext)
+{
+//    writer->beginObject(writer, key);
+//    {
+        writer->addStringElement(writer, WTCrashField_ID, monitorContext->System.bundleID);
+        writer->addStringElement(writer, WTCrashField_BundleVersion, monitorContext->System.bundleShortVersion);
+        writer->addStringElement(writer, WTSDK_Version, KSCRASH_REPORT_VERSION);
+        writer->addStringElement(writer, WTTitle, "title");
+        writer->addIntegerElement(writer, WTOccur_At, time(NULL));
+//    }
+//    writer->endContainer(writer);
+}
+
+static void writeWTAdditionInfo(const KSCrashReportWriter* const writer,
+                              const char* const key)
+{
+
+    writer->beginObject(writer, key);
+    {
+        writer->beginObject(writer, WTData);
+        {
+            writer->addStringElement(writer, WTPhone_Model, "0");
+            writer->addStringElement(writer, WTSystem_Version, "1");
+            writer->addStringElement(writer, WTCrashField_BundleVersion, "2");
+            writer->addStringElement(writer, WTCpu_Architecture, "3");
+            writer->addStringElement(writer, WTScreen_Direction, "4");
+            writer->addStringElement(writer, WTStorage, "reportID");
+            writer->addStringElement(writer, WTMemory, "5");
+            writer->addStringElement(writer, WTBattery, "6");
+            writer->addStringElement(writer, WTNetwork, "7");
+            writer->addStringElement(writer, WTApplication_Packages, "8");
+            writer->addStringElement(writer, WTBundle_id, "9");
+            writer->addStringElement(writer, WTThread_or_Process, "10");
+            writer->addStringElement(writer, WTFront_End, "11");
+            writer->addStringElement(writer, WTDuration_Performance, "12");
+        }
+        writer->endContainer(writer);
+
+        writer->addStringElement(writer, WTPlatform, "13");
+    }
+    writer->endContainer(writer);
+}
+
+static void writeWTCrash(const KSCrashReportWriter* const writer,
+                                const char* const key)
+{
+
+    writer->beginObject(writer, key);
+    {
+        writer->addStringElement(writer, WTSTACK_name, "1");
+        writer->addStringElement(writer, WTIs_Crash, "2");
+
+        writer->beginObject(writer, WTOriginal_Infos);
+        {
+            writer->addStringElement(writer, WTStack_Address, "01");
+            writer->addStringElement(writer, WTName, "02");
+            writer->addStringElement(writer, WTStack_Description, "03");
+        }
+        writer->endContainer(writer);
+    }
+    writer->endContainer(writer);
+}
+
 static void writeRecrash(const KSCrashReportWriter* const writer,
                          const char* const key,
                          const char* crashReportPath)
@@ -1728,54 +1793,56 @@ void kscrashreport_writeStandardReport(const KSCrash_MonitorContext* const monit
 
     writer->beginObject(writer, KSCrashField_Report);
     {
-        writeReportInfo(writer,
-                        KSCrashField_Report,
-                        KSCrashReportType_Standard,
-                        monitorContext->eventID,
-                        monitorContext->System.processName);
+        writeWTReportInfo(writer, monitorContext);
         ksfu_flushBufferedWriter(&bufferedWriter);
 
-        writeBinaryImages(writer, KSCrashField_BinaryImages);
+        writeWTAdditionInfo(writer, WTaddition);
         ksfu_flushBufferedWriter(&bufferedWriter);
 
-        writeProcessState(writer, KSCrashField_ProcessState, monitorContext);
+        writeWTCrash(writer, WTStack_Info);
         ksfu_flushBufferedWriter(&bufferedWriter);
 
-        writeSystemInfo(writer, KSCrashField_System, monitorContext);
-        ksfu_flushBufferedWriter(&bufferedWriter);
+//        writeBinaryImages(writer, KSCrashField_BinaryImages);
+//        ksfu_flushBufferedWriter(&bufferedWriter);
 
-        writer->beginObject(writer, KSCrashField_Crash);
-        {
-            writeError(writer, KSCrashField_Error, monitorContext);
-            ksfu_flushBufferedWriter(&bufferedWriter);
-            writeAllThreads(writer,
-                            KSCrashField_Threads,
-                            monitorContext,
-                            g_introspectionRules.enabled);
-            ksfu_flushBufferedWriter(&bufferedWriter);
-        }
-        writer->endContainer(writer);
+//        writeProcessState(writer, KSCrashField_ProcessState, monitorContext);
+//        ksfu_flushBufferedWriter(&bufferedWriter);
 
-        if(g_userInfoJSON != NULL)
-        {
-            addJSONElement(writer, KSCrashField_User, g_userInfoJSON, false);
-            ksfu_flushBufferedWriter(&bufferedWriter);
-        }
-        else
-        {
-            writer->beginObject(writer, KSCrashField_User);
-        }
-        if(g_userSectionWriteCallback != NULL)
-        {
-            ksfu_flushBufferedWriter(&bufferedWriter);
-            if (monitorContext->currentSnapshotUserReported == false) {
-                g_userSectionWriteCallback(writer);
-            }
-        }
-        writer->endContainer(writer);
-        ksfu_flushBufferedWriter(&bufferedWriter);
+//        writeSystemInfo(writer, KSCrashField_System, monitorContext);
+//        ksfu_flushBufferedWriter(&bufferedWriter);
 
-        writeDebugInfo(writer, KSCrashField_Debug, monitorContext);
+//        writer->beginObject(writer, KSCrashField_Crash);
+//        {
+//            writeError(writer, KSCrashField_Error, monitorContext);
+//            ksfu_flushBufferedWriter(&bufferedWriter);
+//            writeAllThreads(writer,
+//                            KSCrashField_Threads,
+//                            monitorContext,
+//                            g_introspectionRules.enabled);
+//            ksfu_flushBufferedWriter(&bufferedWriter);
+//        }
+//        writer->endContainer(writer);
+
+//        if(g_userInfoJSON != NULL)
+//        {
+//            addJSONElement(writer, KSCrashField_User, g_userInfoJSON, false);
+//            ksfu_flushBufferedWriter(&bufferedWriter);
+//        }
+//        else
+//        {
+//            writer->beginObject(writer, KSCrashField_User);
+//        }
+//        if(g_userSectionWriteCallback != NULL)
+//        {
+//            ksfu_flushBufferedWriter(&bufferedWriter);
+//            if (monitorContext->currentSnapshotUserReported == false) {
+//                g_userSectionWriteCallback(writer);
+//            }
+//        }
+//        writer->endContainer(writer);
+//        ksfu_flushBufferedWriter(&bufferedWriter);
+//
+//        writeDebugInfo(writer, KSCrashField_Debug, monitorContext);
     }
     writer->endContainer(writer);
     

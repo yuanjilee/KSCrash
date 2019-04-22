@@ -26,8 +26,17 @@
 didFinishLaunchingWithOptions:(__unused NSDictionary *) launchOptions
 {
     [self installCrashHandler];
+
+    NSLog(@"%@", NSHomeDirectory());
     
     return YES;
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+//    KSCrash* handler = [KSCrash sharedInstance];
+
+    // Settings in KSCrash.h
+//    NSLog(@"all report🍎 %@", handler.allReports);
 }
 
 // ======================================================================

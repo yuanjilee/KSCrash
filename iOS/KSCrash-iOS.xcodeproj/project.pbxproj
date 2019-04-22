@@ -801,6 +801,7 @@
 		03DE7CD61C84E1F400F789BA /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		03DE7D0F1C84FB9E00F789BA /* module.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = ../../Source/Framework/module.modulemap; sourceTree = "<group>"; };
 		03DE7DA91C879A0200F789BA /* KSCrashFramework.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KSCrashFramework.h; path = ../../Source/Framework/KSCrashFramework.h; sourceTree = "<group>"; };
+		7A12087B226DA62E00AD88E6 /* WTCrashReportCustomFields.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WTCrashReportCustomFields.h; sourceTree = "<group>"; };
 		CB02647E17F7CEC5003E0AED /* KSCPU_arm64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = KSCPU_arm64.c; path = ../../Source/KSCrash/Recording/Tools/KSCPU_arm64.c; sourceTree = "<group>"; };
 		CB02648317FA5B12003E0AED /* Container+DeepSearch_Tests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "Container+DeepSearch_Tests.m"; path = "../../Source/KSCrash-Tests/Container+DeepSearch_Tests.m"; sourceTree = "<group>"; };
 		CB02648417FA5B12003E0AED /* FileBasedTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileBasedTestCase.h; path = "../../Source/KSCrash-Tests/FileBasedTestCase.h"; sourceTree = "<group>"; };
@@ -1294,6 +1295,7 @@
 				CBF53D3017EB765C0056DA83 /* KSCrashReport.c */,
 				CBF53D3117EB765C0056DA83 /* KSCrashReport.h */,
 				CBF53D3217EB765C0056DA83 /* KSCrashReportFields.h */,
+				7A12087B226DA62E00AD88E6 /* WTCrashReportCustomFields.h */,
 				CB0C19BD1DD0F2EE005B2F80 /* KSCrashReportFixer.c */,
 				CB0C19BE1DD0F2EE005B2F80 /* KSCrashReportFixer.h */,
 				CB69B8E41DC0F15C002713B1 /* KSCrashReportStore.c */,
@@ -1916,6 +1918,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -2301,6 +2304,11 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "KSCrash/KSCrash-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+					"KSLogger_Level=TRACE",
+				);
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				INFOPLIST_FILE = "KSCrash/KSCrash-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";

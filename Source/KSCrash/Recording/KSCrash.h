@@ -261,6 +261,8 @@ typedef enum
  */
 - (void) deleteAllReports;
 
+- (NSArray*) allReports;
+
 /** Delete report.
  *
  * @param reportID An ID of report to delete.
