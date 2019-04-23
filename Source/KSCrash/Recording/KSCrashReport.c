@@ -1555,31 +1555,32 @@ static void writeWTReportInfo(const KSCrashReportWriter* const writer,
 }
 
 static void writeWTAdditionInfo(const KSCrashReportWriter* const writer,
-                              const char* const key)
+                                const char* const key,
+                                const KSCrash_MonitorContext* const monitorContext)
 {
 
     writer->beginObject(writer, key);
     {
         writer->beginObject(writer, WTData);
         {
-            writer->addStringElement(writer, WTPhone_Model, "0");
-            writer->addStringElement(writer, WTSystem_Version, "1");
-            writer->addStringElement(writer, WTCrashField_BundleVersion, "2");
-            writer->addStringElement(writer, WTCpu_Architecture, "3");
-            writer->addStringElement(writer, WTScreen_Direction, "4");
-            writer->addStringElement(writer, WTStorage, "reportID");
-            writer->addStringElement(writer, WTMemory, "5");
-            writer->addStringElement(writer, WTBattery, "6");
-            writer->addStringElement(writer, WTNetwork, "7");
-            writer->addStringElement(writer, WTApplication_Packages, "8");
-            writer->addStringElement(writer, WTBundle_id, "9");
-            writer->addStringElement(writer, WTThread_or_Process, "10");
-            writer->addStringElement(writer, WTFront_End, "11");
-            writer->addStringElement(writer, WTDuration_Performance, "12");
+            writer->addStringElement(writer, WTPhone_Model, monitorContext->System.model);
+            writer->addStringElement(writer, WTSystem_Version, monitorContext->System.systemName);
+            writer->addStringElement(writer, WTCrashField_BundleVersion, monitorContext->System.systemVersion);
+            writer->addStringElement(writer, WTCpu_Architecture, monitorContext->System.cpuArchitecture);
+            writer->addStringElement(writer, WTScreen_Direction, "screen_direction");
+            writer->addUIntegerElement(writer, WTStorage, monitorContext->System.storageSize);
+            writer->addUIntegerElement(writer, WTMemory, monitorContext->System.memorySize);
+            writer->addStringElement(writer, WTBattery, "battery");
+            writer->addStringElement(writer, WTNetwork, "network");
+            writer->addStringElement(writer, WTApplication_Packages, "application_packages");
+            writer->addStringElement(writer, WTBundle_id, monitorContext->System.bundleID);
+            writer->addStringElement(writer, WTThread_or_Process, "thread_or_process");
+            writer->addStringElement(writer, WTFront_End, "front_end");
+            writer->addFloatingPointElement(writer, WTDuration_Performance, monitorContext->AppState.activeDurationSinceLaunch);
         }
         writer->endContainer(writer);
 
-        writer->addStringElement(writer, WTPlatform, "13");
+        writer->addUIntegerElement(writer, WTPlatform, 1);
     }
     writer->endContainer(writer);
 }
@@ -1796,7 +1797,7 @@ void kscrashreport_writeStandardReport(const KSCrash_MonitorContext* const monit
         writeWTReportInfo(writer, monitorContext);
         ksfu_flushBufferedWriter(&bufferedWriter);
 
-        writeWTAdditionInfo(writer, WTaddition);
+        writeWTAdditionInfo(writer, WTaddition, monitorContext);
         ksfu_flushBufferedWriter(&bufferedWriter);
 
         writeWTCrash(writer, WTStack_Info);
