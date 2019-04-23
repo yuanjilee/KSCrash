@@ -24,7 +24,6 @@
 // THE SOFTWARE.
 //
 
-
 #include "KSCrashReport.h"
 
 #include "KSCrashReportFields.h"
@@ -912,12 +911,33 @@ static void writeBacktrace(const KSCrashReportWriter* const writer,
                         writer->addUIntegerElement(writer, KSCrashField_SymbolAddr, stackCursor->stackEntry.symbolAddress);
                     }
                     writer->addUIntegerElement(writer, KSCrashField_InstructionAddr, stackCursor->stackEntry.address);
+
+
+                    // add by yuanjilee
+                    const int imageCount = ksdl_imageCount();
+                    for(int iImg = 0; iImg < imageCount; iImg++)
+                    {
+                        KSBinaryImage image = {0};
+                        if(!ksdl_getBinaryImage(iImg, &image))
+                        {
+                            return;
+                        }
+
+                        if (image.address == stackCursor->stackEntry.imageAddress)
+                        {
+                            writer->addStringElement(writer, "name", image.name);
+                            writer->addUUIDElement(writer, "uuid", image.uuid);
+                            return;
+                        }
+                    }
+
+
                 }
                 writer->endContainer(writer);
             }
         }
         writer->endContainer(writer);
-        writer->addIntegerElement(writer, KSCrashField_Skipped, 0);
+//        writer->addIntegerElement(writer, KSCrashField_Skipped, 0);
     }
     writer->endContainer(writer);
 }
@@ -1189,10 +1209,10 @@ static void writeThread(const KSCrashReportWriter* const writer,
         {
             writeBacktrace(writer, KSCrashField_Backtrace, &stackCursor);
         }
-        if(ksmc_canHaveCPUState(machineContext))
-        {
-            writeRegisters(writer, KSCrashField_Registers, machineContext);
-        }
+//        if(ksmc_canHaveCPUState(machineContext))
+//        {
+//            writeRegisters(writer, KSCrashField_Registers, machineContext);
+//        }
         writer->addIntegerElement(writer, KSCrashField_Index, threadIndex);
         const char* name = ksccd_getThreadName(thread);
         if(name != NULL)
@@ -1200,20 +1220,20 @@ static void writeThread(const KSCrashReportWriter* const writer,
             writer->addStringElement(writer, KSCrashField_Name, name);
         }
         name = ksccd_getQueueName(thread);
-        if(name != NULL)
-        {
-            writer->addStringElement(writer, KSCrashField_DispatchQueue, name);
-        }
+//        if(name != NULL)
+//        {
+//            writer->addStringElement(writer, KSCrashField_DispatchQueue, name);
+//        }
         writer->addBooleanElement(writer, KSCrashField_Crashed, isCrashedThread);
         writer->addBooleanElement(writer, KSCrashField_CurrentThread, thread == ksthread_self());
-        if(isCrashedThread)
-        {
-            writeStackContents(writer, KSCrashField_Stack, machineContext, stackCursor.state.hasGivenUp);
-            if(shouldWriteNotableAddresses)
-            {
-                writeNotableAddresses(writer, KSCrashField_NotableAddresses, machineContext);
-            }
-        }
+//        if(isCrashedThread)
+//        {
+//            writeStackContents(writer, KSCrashField_Stack, machineContext, stackCursor.state.hasGivenUp);
+//            if(shouldWriteNotableAddresses)
+//            {
+//                writeNotableAddresses(writer, KSCrashField_NotableAddresses, machineContext);
+//            }
+//        }
     }
     writer->endContainer(writer);
 }
@@ -1227,6 +1247,37 @@ static void writeThread(const KSCrashReportWriter* const writer,
  * @param crash The crash handler context.
  */
 static void writeAllThreads(const KSCrashReportWriter* const writer,
+                            const char* const key,
+                            const KSCrash_MonitorContext* const crash,
+                            bool writeNotableAddresses)
+{
+    const struct KSMachineContext* const context = crash->offendingMachineContext;
+    KSThread offendingThread = ksmc_getThreadFromContext(context);
+    int threadCount = ksmc_getThreadCount(context);
+    KSMC_NEW_CONTEXT(machineContext);
+
+    // Fetch info for all threads.
+    writer->beginArray(writer, key);
+    {
+        KSLOG_DEBUG("Writing %d threads.", threadCount);
+        for(int i = 0; i < threadCount; i++)
+        {
+            KSThread thread = ksmc_getThreadAtIndex(context, i);
+            if(thread == offendingThread)
+            {
+                writeThread(writer, NULL, crash, context, i, writeNotableAddresses);
+            }
+            else
+            {
+                ksmc_getContextForThread(thread, machineContext, false);
+                writeThread(writer, NULL, crash, machineContext, i, writeNotableAddresses);
+            }
+        }
+    }
+    writer->endContainer(writer);
+}
+
+static void writeAllWTThreads(const KSCrashReportWriter* const writer,
                             const char* const key,
                             const KSCrash_MonitorContext* const crash,
                             bool writeNotableAddresses)
@@ -1291,6 +1342,33 @@ static void writeBinaryImage(const KSCrashReportWriter* const writer,
         writer->addUIntegerElement(writer, KSCrashField_ImageRevisionVersion, image.revisionVersion);
     }
     writer->endContainer(writer);
+}
+
+static void getBinaryImage(const int index) {
+
+    KSBinaryImage image = {0};
+    if(!ksdl_getBinaryImage(index, &image))
+    {
+        return;
+    }
+
+
+}
+
+static void getBinaryImages()
+{
+    const int imageCount = ksdl_imageCount();
+    for(int iImg = 0; iImg < imageCount; iImg++)
+    {
+//        getBinaryImage(iImg);
+
+        KSBinaryImage image = {0};
+        if(!ksdl_getBinaryImage(index, &image))
+        {
+            return;
+        }
+
+    }
 }
 
 /** Write information about all images to the report.
@@ -1586,7 +1664,7 @@ static void writeWTAdditionInfo(const KSCrashReportWriter* const writer,
 }
 
 static void writeWTCrash(const KSCrashReportWriter* const writer,
-                                const char* const key)
+                         const char* const key)
 {
 
     writer->beginObject(writer, key);
@@ -1812,17 +1890,17 @@ void kscrashreport_writeStandardReport(const KSCrash_MonitorContext* const monit
 //        writeSystemInfo(writer, KSCrashField_System, monitorContext);
 //        ksfu_flushBufferedWriter(&bufferedWriter);
 
-//        writer->beginObject(writer, KSCrashField_Crash);
-//        {
+        writer->beginObject(writer, KSCrashField_Crash);
+        {
 //            writeError(writer, KSCrashField_Error, monitorContext);
 //            ksfu_flushBufferedWriter(&bufferedWriter);
-//            writeAllThreads(writer,
-//                            KSCrashField_Threads,
-//                            monitorContext,
-//                            g_introspectionRules.enabled);
-//            ksfu_flushBufferedWriter(&bufferedWriter);
-//        }
-//        writer->endContainer(writer);
+            writeAllWTThreads(writer,
+                            KSCrashField_Threads,
+                            monitorContext,
+                            g_introspectionRules.enabled);
+            ksfu_flushBufferedWriter(&bufferedWriter);
+        }
+        writer->endContainer(writer);
 
         if(g_userInfoJSON != NULL)
         {
