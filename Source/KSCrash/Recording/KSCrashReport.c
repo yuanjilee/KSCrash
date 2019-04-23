@@ -1824,11 +1824,11 @@ void kscrashreport_writeStandardReport(const KSCrash_MonitorContext* const monit
 //        }
 //        writer->endContainer(writer);
 
-//        if(g_userInfoJSON != NULL)
-//        {
-//            addJSONElement(writer, KSCrashField_User, g_userInfoJSON, false);
-//            ksfu_flushBufferedWriter(&bufferedWriter);
-//        }
+        if(g_userInfoJSON != NULL)
+        {
+            addJSONElement(writer, KSCrashField_User, g_userInfoJSON, false);
+            ksfu_flushBufferedWriter(&bufferedWriter);
+        }
 //        else
 //        {
 //            writer->beginObject(writer, KSCrashField_User);
@@ -1842,7 +1842,7 @@ void kscrashreport_writeStandardReport(const KSCrash_MonitorContext* const monit
 //        }
 //        writer->endContainer(writer);
 //        ksfu_flushBufferedWriter(&bufferedWriter);
-//
+
 //        writeDebugInfo(writer, KSCrashField_Debug, monitorContext);
     }
     writer->endContainer(writer);

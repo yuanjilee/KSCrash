@@ -73,6 +73,16 @@ didFinishLaunchingWithOptions:(__unused NSDictionary *) launchOptions
              NSLog(@"Failed to send reports: %@", error);
          }
      }];
+
+
+    KSCrash *handler = [KSCrash sharedInstance];
+    handler.userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                        @"\"quote\"", @"quoted value",
+                        @"blah", @"\"quoted\" key",
+                        @"bslash\\", @"bslash value",
+                        @"x", @"bslash\\key",
+                        @"intl", @"テスト",
+                        nil];
 }
 
 - (KSCrashInstallation*) makeEmailInstallation
