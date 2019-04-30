@@ -47,32 +47,39 @@ didFinishLaunchingWithOptions:(__unused NSDictionary *) launchOptions
 {
     // Create an installation (choose one)
 //    KSCrashInstallation* installation = [self makeStandardInstallation];
-    KSCrashInstallation* installation = [self makeEmailInstallation];
+//    KSCrashInstallation* installation = [self makeEmailInstallation];
 //    KSCrashInstallation* installation = [self makeHockeyInstallation];
 //    KSCrashInstallation* installation = [self makeQuincyInstallation];
 //    KSCrashInstallation *installation = [self makeVictoryInstallation];
+
+    KSCrashInstallationStandard *shared = [KSCrashInstallationStandard sharedInstance];
+    NSString *url = @"http://worktile.com/api/bugtrace/exception/report";
+    shared.url = [NSURL URLWithString: url];
+    [shared sendAllReportsWithCompletion:^(NSArray *filteredReports, BOOL completed, NSError *error) {
+        NSLog(@"Success!!!!!!!!!");
+    }];
     
     
     // Install the crash handler. This should be done as early as possible.
     // This will record any crashes that occur, but it doesn't automatically send them.
-    [installation install];
-    [KSCrash sharedInstance].deleteBehaviorAfterSendAll = KSCDeleteNever; // TODO: Remove this
+//    [installation install];
+//    [KSCrash sharedInstance].deleteBehaviorAfterSendAll = KSCDeleteNever; // TODO: Remove this
 
 
     // Send all outstanding reports. You can do this any time; it doesn't need
     // to happen right as the app launches. Advanced-Example shows how to defer
     // displaying the main view controller until crash reporting completes.
-    [installation sendAllReportsWithCompletion:^(NSArray* reports, BOOL completed, NSError* error)
-     {
-         if(completed)
-         {
-             NSLog(@"Sent %d reports", (int)[reports count]);
-         }
-         else
-         {
-             NSLog(@"Failed to send reports: %@", error);
-         }
-     }];
+//    [installation sendAllReportsWithCompletion:^(NSArray* reports, BOOL completed, NSError* error)
+//     {
+//         if(completed)
+//         {
+//             NSLog(@"Sent %d reports", (int)[reports count]);
+//         }
+//         else
+//         {
+//             NSLog(@"Failed to send reports: %@", error);
+//         }
+//     }];
 
 
     KSCrash *handler = [KSCrash sharedInstance];
